@@ -200,21 +200,26 @@ static void mgos_http_ev(struct mg_connection *c, int ev, void *p,
     }
     case MG_EV_HTTP_REQUEST: {
 #if MG_ENABLE_FILESYSTEM
-      struct http_message *hm = (struct http_message *) p;
-      if (s_http_server_opts.document_root != NULL && 
-        (mgos_sys_config_get_http_max_uri() == 0 || hm->uri.len < (uint)mgos_sys_config_get_http_max_uri())) {
-        LOG(LL_INFO, ("%p %.*s %.*s", c, (int) hm->method.len, hm->method.p,
-                      (int) hm->uri.len, hm->uri.p));
-        mg_serve_http(c, p, s_http_server_opts);
+      if (s_http_server_opts.document_root != NULL) {
+        struct http_message *hm = (struct http_message *) p;
+        struct mg_str *host_hdr = mg_get_http_header(hm, "Host");
+          LOG(LL_DEBUG, ("%p %.*s %.*s", c, (int) hm->method.len, hm->method.p,
+                        (int) hm->uri.len, hm->uri.p));
+        if (strcmp(mgos_sys_config_get_http_force_host(),"")==0 || 
+          strcmp(host_hdr->p, mgos_sys_config_get_http_force_host())==0 || 
+          strcmp(host_hdr->p, mgos_sys_config_get_http_force_host())>(int)strlen(mgos_sys_config_get_http_force_host())) {
+          mg_serve_http(c, p, s_http_server_opts);
+        } else {
+          char *uri;
+          asprintf(&uri, "http://%s/", mgos_sys_config_get_http_force_host());
+          mg_http_send_redirect(c, 302, mg_mk_str(uri), mg_mk_str(NULL));
+        }
         (void) hm;
+        (void) host_hdr;
       } else
 #endif
       {
-        if (mgos_sys_config_get_http_error_redirect()) {
-          mg_http_send_redirect(c, 302, mg_mk_str("/"), mg_mk_str(NULL));
-        } else {
-          mg_http_send_error(c, 404, "Not Found");
-        }
+        mg_http_send_error(c, 404, "Not Found");
       }
       break;
     }

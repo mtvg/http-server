@@ -20,8 +20,7 @@ config_schema:
   - ["http.auth_domain", "s", {title: "Enable authentication of all HTTP requests"}]
   - ["http.auth_file", "s", {title: "Password file to use for auth"}]
   - ["http.index_files", "s", "index.html", {title: "Index files"}]
-  - ["http.error_redirect", "b", false, {title: "302 Redirect to / instead of 404"}]
-  - ["http.max_uri", "i", 0, {title: "Maximum URI length to server static files. No limit if equal to 0"}]
+  - ["http.force_host", "s", "", {title: "Will redirect to host if request came from different host"}]
 
 cdefs:
   MGOS_ENABLE_WEB_CONFIG: 0
