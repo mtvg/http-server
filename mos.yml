@@ -20,6 +20,7 @@ config_schema:
   - ["http.auth_domain", "s", {title: "Enable authentication of all HTTP requests"}]
   - ["http.auth_file", "s", {title: "Password file to use for auth"}]
   - ["http.index_files", "s", "index.html", {title: "Index files"}]
+  - ["http.error_redirect", "b", false, {title: "302 Redirect to / instead of 404"}]
 
 cdefs:
   MGOS_ENABLE_WEB_CONFIG: 0

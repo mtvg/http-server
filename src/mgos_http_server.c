@@ -48,6 +48,7 @@ static struct mg_serve_http_opts s_http_server_opts;
 #endif
 static struct mg_connection *s_listen_conn;
 static struct mg_connection *s_listen_conn_tun;
+static mgos_ep_controller_event_handler ep_controller_cb;
 
 #if MGOS_ENABLE_WEB_CONFIG
 
@@ -209,7 +210,11 @@ static void mgos_http_ev(struct mg_connection *c, int ev, void *p,
       } else
 #endif
       {
-        mg_http_send_error(c, 404, "Not Found");
+        if (mgos_sys_config_get_http_error_redirect()) {
+          mg_http_send_redirect(c, 302, mg_mk_str("/"), mg_mk_str(NULL));
+        } else {
+          mg_http_send_error(c, 404, "Not Found");
+        }
       }
       break;
     }
@@ -226,6 +231,11 @@ static void mgos_http_ev(struct mg_connection *c, int ev, void *p,
       break;
     }
   }
+
+  if( ep_controller_cb != NULL ){
+    ep_controller_cb(c,ev,p,user_data);
+  }
+
   (void) user_data;
 }
 
@@ -385,4 +395,8 @@ struct mg_connection *mgos_get_sys_http_server(void) {
 
 void mgos_http_server_set_document_root(const char *document_root) {
   s_http_server_opts.document_root = document_root;
+}
+
+void mgos_register_ep_controller_event_handler(mgos_ep_controller_event_handler cb) {
+  ep_controller_cb = cb;
 }
