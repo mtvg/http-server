@@ -200,11 +200,11 @@ static void mgos_http_ev(struct mg_connection *c, int ev, void *p,
     }
     case MG_EV_HTTP_REQUEST: {
 #if MG_ENABLE_FILESYSTEM
-      if (s_http_server_opts.document_root != NULL) {
-        struct http_message *hm = (struct http_message *) p;
+      struct http_message *hm = (struct http_message *) p;
+      if (s_http_server_opts.document_root != NULL && 
+        (mgos_sys_config_get_http_max_uri() == 0 || hm->uri.len < (uint)mgos_sys_config_get_http_max_uri())) {
         LOG(LL_INFO, ("%p %.*s %.*s", c, (int) hm->method.len, hm->method.p,
                       (int) hm->uri.len, hm->uri.p));
-
         mg_serve_http(c, p, s_http_server_opts);
         (void) hm;
       } else
