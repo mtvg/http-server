@@ -245,6 +245,7 @@ bool mgos_http_server_init(void) {
       mgos_sys_config_get_http_hidden_files();
   s_http_server_opts.auth_domain = mgos_sys_config_get_http_auth_domain();
   s_http_server_opts.global_auth_file = mgos_sys_config_get_http_auth_file();
+  s_http_server_opts.index_files = mgos_sys_config_get_http_index_files();
 #endif
 
   struct mg_bind_opts opts;

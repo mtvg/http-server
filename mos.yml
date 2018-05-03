@@ -19,6 +19,7 @@ config_schema:
   - ["http.hidden_files", "s", {title: "Hidden file pattern"}]
   - ["http.auth_domain", "s", {title: "Enable authentication of all HTTP requests"}]
   - ["http.auth_file", "s", {title: "Password file to use for auth"}]
+  - ["http.index_files", "s", "index.html", {title: "Index files"}]
 
 cdefs:
   MGOS_ENABLE_WEB_CONFIG: 0

@@ -1,0 +1,22 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"tab_size": 4
+	},
+	"build_systems":
+	[
+		{
+			"name": "MOS Build",
+			"shell_cmd": "mos build --arch esp8266 --local --verbose",
+			"working_dir": "$project_path",
+			"file_regex": "^(/[^:]+):([0-9]+):([0-9]+): (.+)",
+			"path": "~/.mos/bin"
+		}
+	]
+}
