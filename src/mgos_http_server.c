@@ -188,14 +188,16 @@ static void on_net_ready(int ev, void *evd, void *arg) {
 }
 #endif /* MGOS_ENABLE_TUNNEL */
 
+static char redirectedAddr[32];
+
 static void mgos_http_ev(struct mg_connection *c, int ev, void *p,
                          void *user_data) {
+    char addr[32];
+    mg_sock_addr_to_str(&c->sa, addr, sizeof(addr),
+                        MG_SOCK_STRINGIFY_IP);
   switch (ev) {
     case MG_EV_ACCEPT: {
-      char addr[32];
-      mg_sock_addr_to_str(&c->sa, addr, sizeof(addr),
-                          MG_SOCK_STRINGIFY_IP | MG_SOCK_STRINGIFY_PORT);
-      LOG(LL_INFO, ("%p HTTP connection from %s", c, addr));
+      LOG(LL_DEBUG, ("%p HTTP connection from %s", c, addr));
       break;
     }
     case MG_EV_HTTP_REQUEST: {
@@ -203,12 +205,22 @@ static void mgos_http_ev(struct mg_connection *c, int ev, void *p,
       if (s_http_server_opts.document_root != NULL) {
         struct http_message *hm = (struct http_message *) p;
         struct mg_str *host_hdr = mg_get_http_header(hm, "Host");
-          LOG(LL_DEBUG, ("%p %.*s %.*s", c, (int) hm->method.len, hm->method.p,
+          LOG(LL_DEBUG, ("REQUEST: %p %.*s %.*s%.*s", c, (int) hm->method.len, hm->method.p,
+                        (int) host_hdr->len, host_hdr->p,
                         (int) hm->uri.len, hm->uri.p));
-        if (strcmp(mgos_sys_config_get_http_force_host(),"")==0 || 
-          strcmp(host_hdr->p, mgos_sys_config_get_http_force_host())==0 || 
-          strcmp(host_hdr->p, mgos_sys_config_get_http_force_host())>(int)strlen(mgos_sys_config_get_http_force_host())) {
+        if (strlen(mgos_sys_config_get_http_force_host())==0 || 
+          mg_strcmp(mg_mk_str(mgos_sys_config_get_http_force_host()), *host_hdr)==0 ||
+          strcmp(addr, redirectedAddr) == 0) {
+
           mg_serve_http(c, p, s_http_server_opts);
+
+          bool isRoot = mg_strcmp(mg_mk_str("/"), hm->uri) == 0;
+          if (strcmp(addr, redirectedAddr) != 0 && !isRoot) {
+            strncpy(redirectedAddr, addr, 32);
+          } else {
+            memset(redirectedAddr, 0, 32);
+          }
+
         } else {
           char *uri;
           asprintf(&uri, "http://%s/", mgos_sys_config_get_http_force_host());
